@@ -1,3 +1,4 @@
+import themes from './themes';
 export default class GameController {
   constructor(gamePlay, stateService) {
     this.gamePlay = gamePlay;
@@ -5,8 +6,12 @@ export default class GameController {
   }
 
   init() {
-    // TODO: add event listeners to gamePlay events
-    // TODO: load saved stated from stateService
+    this.gamePlay.drawUi(themes.prairie);
+    const startUserTeam = this.userTypes.slice(0, 2);
+    const userPos = this.generatePlayers(this.userPositions, startUserTeam);
+    this.gamePlay.redrawPosition(userPos);
+    const enemyPos = this.generatePlayers(this.enemyPositions, this.enemyTypes);
+    this.gamePlay.redrawPosition(enemyPos);
   }
 
   onCellClick(index) {
