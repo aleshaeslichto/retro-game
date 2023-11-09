@@ -1,55 +1,38 @@
-import Team from "./Team";
-import Bowman from "./characters/Bowman";
-import Daemon from "./characters/Daemon";
-import Magician from "./characters/Magician";
-import Swordsman from "./characters/Swordsman";
-import Undead from "./characters/Undead";
-import Vampire from "./characters/Vampire";
+import PositionedCharacter from './PositionedCharacter';
+import getRandomAlliancePos from './getRandomAlliancePos';
+import getRandomHordePos from './getRandomHordePos';
+import charClass from './charClass';
 
 /**
- * Формирует экземпляр персонажа из массива allowedTypes со
- * случайным уровнем от 1 до maxLevel
+ * Generates random characters
  *
- * @param allowedTypes массив классов
- * @param maxLevel максимальный возможный уровень персонажа
- * @returns генератор, который при каждом вызове
- * возвращает новый экземпляр класса персонажа
- *
+ * @param typePerson
+ * @param maxLevel max character level
+ * @returns Character type children (ex. Magician, Bowman, etc)
  */
-export function* characterGenerator(allowedTypes, maxLevel) {
-const playerTypes = {
-  bowman: Bowman,
-  swordsman: Swordsman,
-  magician: Magician,
-  daemon: Daemon,
-  undead: Undead,
-  vampire: Vampire,
-};
+
+function* characterGenerator(typePerson, maxLevel) {
   // TODO: write logic here
-  while (true) {
-    const type = Math.floor(math.random() * allowedTypes.length);
-    const level = Math.floor(Math.random() * maxLevel + 1);
-    const a = allowedTypes[type];
 
-    yield new playerTypes[a](level);
+  let alliancePosition = getRandomAlliancePos()[Symbol.iterator]();
+  let hordePosition = getRandomHordePos()[Symbol.iterator]();
+  const character = charClass.create(typePerson, Math.floor(Math.random() * maxLevel) + 1);
+  if (character._type === 'bowman' || character._type === 'swordsman' || character._type === 'magician') {
+    if (alliancePosition.next().value === undefined) alliancePosition = getRandomAlliancePos()[Symbol.iterator]();
+    yield new PositionedCharacter(character, Number(alliancePosition.next().value));
+  } else {
+    if (hordePosition.next().value === undefined) hordePosition = getRandomHordePos()[Symbol.iterator]();
+    yield new PositionedCharacter(character, Number(hordePosition.next().value));
   }
 }
 
-/**
- * Формирует массив персонажей на основе characterGenerator
- * @param allowedTypes массив классов
- * @param maxLevel максимальный возможный уровень персонажа
- * @param characterCount количество персонажей, которое нужно сформировать
- * @returns экземпляр Team, хранящий экземпляры персонажей. Количество персонажей в команде - characterCount
- * */
-export function generateTeam(allowedTypes, maxLevel, characterCount) {
-  const team = [];
-  const playerGenerator = characterGenerator(allowedTypes, maxLevel);
-  let count = 1;
-  for (const _ of Array(characterCount)) {
-    team.push(playerGenerator.next().value);
-    count++;
-  }
-  return new Team(team);
-}
+export default function generateTeam(allowedTypes, maxLevel, characterCount) {
+  // TODO: write logic here
 
+  const array = [];
+  for (let i = 0; i < characterCount; i += 1) {
+    const type = allowedTypes[Math.trunc(Math.random() * allowedTypes.length)];
+    array.push(characterGenerator(type, maxLevel).next().value);
+  }
+  return array;
+}
