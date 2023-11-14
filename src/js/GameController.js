@@ -28,8 +28,6 @@ export default class GameController {
         // add event listeners to gamePlay events
         if (sessionStorage.getItem('game')) {
             this.getSessionStorage();
-        } else {
-            this.gamePreparation();
         }
         this.gamePlay.drawUi(this.level);
         this.gamePlay.redrawPositions([...this.allianceTeam, ...this.hordeTeam]);
@@ -81,22 +79,63 @@ export default class GameController {
             maxLevelHorde = 4;
         }
 
-        // generate new alliance team and getting new random position out of iteration
-        const allianceTeam = generateTeam(this.teams.allianceRepository, maxLevelAlliance, countCharacter).map((character) => character);
-        const randomAlliancePos = getRandomAlliancePos()[Symbol.iterator]();
-        this.allianceTeam = [...this.allianceTeam, ...allianceTeam];
-        this.allianceTeam.forEach((character) => {
-            const person = character;
-            person.position = randomAlliancePos.next().value;
-        });
+        // // generate new alliance team and getting new random position out of iteration
+        // const allianceTeam = generateTeam(this.teams.allianceRepository, maxLevelAlliance, countCharacter).map((character) => character);
+        // const randomAlliancePos = getRandomAlliancePos()[Symbol.iterator]();
+        // this.allianceTeam = [...this.allianceTeam, ...allianceTeam];
+        // this.allianceTeam.forEach((character) => {
+        //     const person = character;
+        //     person.position = randomAlliancePos.next().value;
+        // });
 
-        //same for horde team
-        this.hordeTeam = generateTeam(this.teams.hordeRepository, maxLevelHorde, this.allianceTeam.length);
+        // //same for horde team
+        // this.hordeTeam = generateTeam(this.teams.hordeRepository, maxLevelHorde, this.allianceTeam.length);
 
-        // setting 1st move for alliance
-        this.move = this.allianceTeam;
+        // // setting 1st move for alliance
+        // this.move = this.allianceTeam;
 
-        this.saveSession();
+        // this.saveSession();
+        // генерируем все стартовые позиции для Альянса
+const alliancePositions = getRandomAlliancePos()
+.map(index => convertTo2DCoords(index)); 
+
+// перемешиваем
+shuffle(alliancePositions);
+
+// счетчик для текущей позиции
+let allianceIndex = 0;
+
+// генерируем новых персонажей Альянса
+const allianceTeam = generateTeam(this.teams.allianceRepository, maxLevelAlliance, countCharacter)
+.map(character => character);
+
+// назначаем уникальные позиции
+this.allianceTeam = [...this.allianceTeam, ...allianceTeam];
+this.allianceTeam.forEach(character => {
+character.position = convertFrom2DToCoords(
+  alliancePositions[allianceIndex++] 
+);
+});
+
+// то же самое для Орды
+const hordePositions = getRandomHordePos()
+.map(index => convertTo2DCoords(index));
+
+shuffle(hordePositions); 
+
+let hordeIndex = 0;
+
+const hordeTeam = generateTeam(this.teams.hordeRepository, maxLevelHorde, this.allianceTeam.length);
+
+this.hordeTeam = hordeTeam; 
+this.hordeTeam.forEach(character => {
+character.position = convertFrom2DToCoords(
+   hordePositions[hordeIndex++]
+);
+});
+
+this.move = this.allianceTeam;
+this.saveSession();
     }
 
     // getting state of game session
@@ -119,14 +158,14 @@ export default class GameController {
 
     onSaveGameClick() {
         this.stateService.save(this.gameState);
-        GamePlay.showMessage('Игра успешно сохранена.');
+        GamePlay.showMessage('Сохранение игры...');
     }
 
     onLoadGameClick() {
         const loadObject = this.stateService.load();
         this.transformStateObject(loadObject);
         sessionStorage.setItem('game', JSON.stringify(this.gameState));
-        GamePlay.showMessage('Игра успешно загружена.');
+        GamePlay.showMessage('Загрузка игры...');
         this.gamePlay.drawUi(this.level);
         this.gamePlay.redrawPositions([...this.allianceTeam, ...this.hordeTeam]);
     }
@@ -138,7 +177,7 @@ export default class GameController {
                 this.gamePlay.cells[index].hasChildNodes() &&
                 !(this.gamePlay.cells[index].classList.contains('selected-green')) &&
                 !(this.gamePlay.cells[index].classList.contains('selected-red'))) {
-                GamePlay.showError('Нельзя выбрать игрока противоположной команды!');
+                GamePlay.showError('Нельзя выбрать персонажа противоположной команды!');
                 return;
             }
         }
@@ -163,7 +202,7 @@ export default class GameController {
             this.gamePlay.redrawPositions([...this.allianceTeam, ...this.hordeTeam]);
             if (this.hordeTeam.length === 0) {
                 if (this.level === 'mountain') {
-                    GamePlay.showMessage('Вы выйграли игру!');
+                    GamePlay.showMessage('Вы выиграли!');
                     return;
                 }
                 this.winAndLevelUpGame();
