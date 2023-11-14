@@ -5,7 +5,7 @@ import Daemon from './characters/Daemon';
 import Undead from './characters/Undead';
 import Vampire from './characters/Vampire';
 
-// class constructor
+
 export default class charClass {
   static create(type, level) {
     let charClass;
