@@ -5,5 +5,5 @@ export default function getRandomAlliancePos() {
     set.add(arrNumberPosition[randomIndex]);
     return set;
   }, new Set());
-  return [...uniqueNumber.values()];
+  return  [...uniqueNumber.values()];
 }

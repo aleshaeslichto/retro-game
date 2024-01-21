@@ -28,11 +28,15 @@ function* characterGenerator(typePerson, maxLevel) {
 
 export default function generateTeam(allowedTypes, maxLevel, characterCount) {
   // TODO: write logic here
-
   const array = [];
+  const positionClone = [];
   for (let i = 0; i < characterCount; i += 1) {
     const type = allowedTypes[Math.trunc(Math.random() * allowedTypes.length)];
-    array.push(characterGenerator(type, maxLevel).next().value);
+    let charInfo = characterGenerator(type, maxLevel).next().value;
+    while (positionClone.includes(charInfo.position))
+      charInfo = characterGenerator(type, maxLevel).next().value;
+    positionClone.push(charInfo.position);
+    array.push(charInfo);
   }
   return array;
 }
